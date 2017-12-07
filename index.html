@@ -1,0 +1,69 @@
+<html>
+<head>
+	<script src="https://d3js.org/d3.v4.min.js"></script>
+	<script type="text/javascript" src="tuition.js"></script>
+</head>
+<body>
+	<h1>Cost of Georgia Tech</h1>
+	<p>This is the number of minimum wage hours per week (52 weeks in a year) a student would have to work to pay for a year of Georgia Tech tuition and fees.</p>
+	<svg></svg>
+</body>
+<script type="text/javascript">
+	//assuming the minimum wage change lines up nicely with tuition
+	//assuming 10% taxes
+	var tax = .1;
+	var margin = {
+        "left":40,
+        "right":20,
+        "top":20,
+        "bottom":20,
+    };
+    var width = window.innerWidth*0.9;
+    var height = window.innerHeight*0.9;
+    var scaleDomain = [];
+    var yDomain = [];
+
+    var svg = d3.select("svg")
+        .attr("height", height)
+        .attr("width", width);
+
+    for (var i = tuition.length - 1; i >= 0; i--) {
+    	var cost = tuition[i].instate + tuition[i].fees;
+    	tuition[i].hours = (tuition[i].instate + tuition[i].fees)/(wage[tuition[i].year]*(1.0-tax));
+    	tuition[i].hours = tuition[i].hours/52.0;
+    	scaleDomain.push(tuition[i].year);
+    	yDomain.push(tuition[i].hours);
+    };
+    scaleDomain.reverse();
+    // console.log(JSON.stringify(tuition));
+
+    var x = d3.scaleBand()
+    	.range([margin.left, width-margin.right])
+    	.domain(scaleDomain);
+    // console.log(scaleDomain, scaleDomain);
+	var y = d3.scaleLinear()
+		.rangeRound([height-margin.bottom, margin.top])
+		.domain([d3.min(yDomain), d3.max(yDomain)]);
+
+	svg.append("g")
+      .attr("transform", "translate(0," + (height-margin.bottom) + ")")
+      .call(d3.axisBottom(x));
+    svg.append("g")
+	    .attr("transform", "translate("+ margin.left +", 0)")
+      .call(d3.axisLeft(y));
+
+	var line = d3.line()
+	    .x(function(d) { return x(d.year); })
+	    .y(function(d) { return y(d.hours); });
+
+	svg.append("path")
+	      .datum(tuition)
+	      .attr("fill", "none")
+	      .attr("stroke", "steelblue")
+	      .attr("stroke-linejoin", "round")
+	      .attr("stroke-linecap", "round")
+	      .attr("stroke-width", 1.5)
+	      .attr("d", line);      
+
+</script>
+</html>
